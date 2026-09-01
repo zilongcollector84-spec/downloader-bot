@@ -6,7 +6,7 @@ from aiogram.types import Message, FSInputFile
 import yt_dlp
 
 # Botning yangi to'liq tokeni
-BOT_TOKEN = "8861166891:AAHzojupUbGF0NXSxq1FD-06W2Gv5Cw6o1s"
+BOT_TOKEN = "8861166891:AAHzojupUbGFONXSxq1FD-Q6W2Gy5Cw6o1s"
 
 logging.basicConfig(level=logging.INFO)
 
