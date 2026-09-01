@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile
 import yt_dlp
 
-BOT_TOKEN = "8861166891:AAHqaBz_gibVh9HmpYQ-Osie3COb2du_LcI"
+BOT_TOKEN = "8861166891:AAFqt-lvg6Yo782mdQNN51AYxD1OKwiHV6E"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
