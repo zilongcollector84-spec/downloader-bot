@@ -11,18 +11,20 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 def download_video(url: str, output_path: str = "video.mp4"):
+    # Linkdagi ortiqcha ?si=... kabi parametrlarni tozalash
     clean_url = url.split("?")[0]
     
     ydl_opts = {
-        # FFmpeg talab qilmaydigan, video va audio tayyor birga joylashgan eng sifatli formatni tanlaydi
-        'format': 'b[ext=mp4]/best[ext=mp4]/best',
+        'format': 'b/best',
         'outtmpl': output_path,
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
+        'geo_bypass': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios', 'android']
+                'player_client': ['mweb', 'android', 'ios'],
+                'skip': ['hls', 'dash']
             }
         }
     }
