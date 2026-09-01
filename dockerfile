@@ -1,6 +1,6 @@
 FROM python:3.10-slim
 
-# FFmpeg va kerakli vositalarni o'rnatish
+# FFmpeg dasturini serverga o'rnatamiz
 RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
