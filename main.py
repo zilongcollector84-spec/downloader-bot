@@ -11,25 +11,39 @@ BOT_TOKEN = "8861166891:AAHqaBz_gibVh9HmpYQ-Osie3COb2du_LcI"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# YouTube va boshqa tarmoqlar uchun API orqali yuklash
-async def download_via_api(url: str, output_path: str) -> bool:
-    api_url = f"https://api.cobalt.tools/api/json"
-    payload = {"url": url, "videoQuality": "720"}
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)"
-    }
-
+# YouTube uchun Piped API orqali videoni olish (Bloklarni aylanib o'tadi)
+async def download_youtube_piped(url: str, output_path: str) -> bool:
     try:
+        # Video ID ni ajratib olish
+        video_id = ""
+        if "shorts/" in url:
+            video_id = url.split("shorts/")[1].split("?")[0]
+        elif "v=" in url:
+            video_id = url.split("v=")[1].split("&")[0]
+        elif "youtu.be/" in url:
+            video_id = url.split("youtu.be/")[1].split("?")[0]
+
+        if not video_id:
+            return False
+
+        api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
         async with aiohttp.ClientSession() as session:
-            async with session.post(api_url, json=payload, headers=headers, timeout=15) as resp:
+            async with session.get(api_url, timeout=15) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    video_link = data.get("url")
-                    
-                    if video_link:
-                        async with session.get(video_link, timeout=30) as v_resp:
+                    # Ovozli va tasvirli tayyor streamni topish
+                    streams = data.get("videoStreams", [])
+                    target_url = None
+                    for stream in streams:
+                        if stream.get("videoOnly") is False and stream.get("mimeType") == "video/mp4":
+                            target_url = stream.get("url")
+                            break
+
+                    if not target_url and streams:
+                        target_url = streams[0].get("url")
+
+                    if target_url:
+                        async with session.get(target_url, timeout=30) as v_resp:
                             if v_resp.status == 200:
                                 with open(output_path, "wb") as f:
                                     f.write(await v_resp.read())
@@ -38,7 +52,7 @@ async def download_via_api(url: str, output_path: str) -> bool:
         pass
     return False
 
-# Zaxira usul (Instagram va TikTok uchun yt-dlp)
+# Instagram/TikTok va zaxira uchun yt-dlp (Faqat 1 ta video yuklash cheklovi bilan)
 def download_via_ytdlp(url: str, output_path: str):
     ydl_opts = {
         'format': 'b/best',
@@ -46,6 +60,7 @@ def download_via_ytdlp(url: str, output_path: str):
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
+        'playlistend': 1,  # Instagram karuselida faqat 1-videoni olish
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
@@ -66,10 +81,13 @@ async def process_link(message: types.Message):
     file_path = f"video_{message.from_user.id}.mp4"
 
     try:
-        # Avval API orqali yuklaymiz
-        success = await download_via_api(url, file_path)
+        success = False
         
-        # Agar API o'xshamasa, yt-dlp ishga tushadi
+        # Gar YouTube bo'lsa avval Piped API orqali harakat qilamiz
+        if "youtube.com" in url or "youtu.be" in url:
+            success = await download_youtube_piped(url, file_path)
+
+        # YouTube API o'xshamasa yoki Instagram/TikTok bo'lsa yt-dlp ishlaydi
         if not success:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, download_via_ytdlp, url, file_path)
