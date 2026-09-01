@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile
 import yt_dlp
 
-BOT_TOKEN = "BOT_TOKENINGIZNI_SHUYERGA_YOZING"
+BOT_TOKEN = "8861166891:AAHqaBz_gibVh9HmpYQ-Osie3COb2du_LcI"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -14,7 +14,7 @@ def download_video(url: str, output_path: str = "video.mp4"):
     clean_url = url.split("?")[0]
     
     ydl_opts = {
-        'format': 'best[ext=mp4]/best',
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': output_path,
         'quiet': True,
         'no_warnings': True,
